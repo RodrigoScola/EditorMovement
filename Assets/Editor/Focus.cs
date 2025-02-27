@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Focus;
+using NUnit.Framework;
 using Unity.VisualScripting;
 using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
+[InitializeOnLoad]
 public class Ex : EditorWindow
 {
+    public static UserData userdata;
+    private static FileDataHandler handler;
+
     static List<EditorWindow> windows = new();
     static EditorWindow focused;
 
@@ -21,12 +24,75 @@ public class Ex : EditorWindow
     static Ex()
     {
         EditorApplication.update += TrackActiveTab;
+
+        handler = new(Application.persistentDataPath, "userData.json");
+
+        userdata = handler.Load();
+        userdata ??= new();
+
+        if (userdata is null)
+        {
+            userdata = new();
+            handler.Save(userdata);
+        }
+
+        EditorCommands.Add("focus-left", Ex.LeftWindow);
+        EditorCommands.Add("focus-right", Ex.RightWindow);
+        EditorCommands.Add("focus-bottom", Ex.Bottom);
+        EditorCommands.Add("focus-Top", Ex.Top);
+
+        userdata.AddMacro(
+            new()
+            {
+                keys = new List<Key>()
+                {
+                    new Key() { code = 72, control = true },
+                },
+                commands = new List<string>() { "focus-left" },
+            }
+        );
+
+        userdata.AddMacro(
+            new()
+            {
+                keys = new List<Key>()
+                {
+                    new Key() { code = 76, control = true },
+                },
+                commands = new List<string>() { "focus-right" },
+            }
+        );
+
+        userdata.AddMacro(
+            new()
+            {
+                keys = new List<Key>()
+                {
+                    new Key() { code = 74, control = true },
+                },
+                commands = new List<string>() { "focus-bottom" },
+            }
+        );
+
+        userdata.AddMacro(
+            new()
+            {
+                keys = new List<Key>()
+                {
+                    new Key() { code = 75, control = true },
+                },
+                commands = new List<string>() { "focus-top" },
+            }
+        );
+
+        handler.Save(userdata);
     }
 
     static void Setup()
     {
         windows = Resources.FindObjectsOfTypeAll<EditorWindow>().ToList();
         focused = EditorWindow.focusedWindow;
+        Assert.IsNotNull(focused, "focused is null on setup");
         tab = FocusWindow.GetDockedWindows(focused);
 
         //todo: make this better.
@@ -39,7 +105,7 @@ public class Ex : EditorWindow
     private static int currentIndex;
 
     [MenuItem("FocusTab/PreviousComponent")]
-    static void Down()
+    public static void Down()
     {
         Setup();
         if (Hierarchy.IsHierarchy(focused))
@@ -48,12 +114,17 @@ public class Ex : EditorWindow
             return;
         }
 
-        Type hierarchyType = Type.GetType("UnityEditor.InspectorWindow, UnityEditor");
+        var e = Event.KeyboardEvent("down");
+        EditorWindow.focusedWindow.SendEvent(e);
 
-        var isinspector = focused is null || hierarchyType != focused.GetType() ? false : true;
+        // Type hierarchyType = Type.GetType("UnityEditor.InspectorWindow, UnityEditor");
 
-        if (!isinspector)
-            return;
+        // var isinspector = focused is null || hierarchyType != focused.GetType() ? false : true;
+
+        // if (!isinspector)
+        //     return;
+
+        // return;
     }
 
     [MenuItem("FocusTab/ParentComponent")]
@@ -65,6 +136,9 @@ public class Ex : EditorWindow
         {
             Hierarchy.Left();
         }
+
+        var e = Event.KeyboardEvent("left");
+        EditorWindow.focusedWindow.SendEvent(e);
     }
 
     [MenuItem("FocusTab/ExpandTree")]
@@ -82,8 +156,13 @@ public class Ex : EditorWindow
 
         var isinspector = focused is null || hierarchyType != focused.GetType() ? false : true;
 
-        if (!isinspector)
-            return;
+        Debug.Log("sending the right event");
+
+        // if (!isinspector)
+        //     return;
+
+        var e = Event.KeyboardEvent("right");
+        EditorWindow.focusedWindow.SendEvent(e);
     }
 
     [MenuItem("FocusTab/NextComponent")]
@@ -93,13 +172,19 @@ public class Ex : EditorWindow
         if (Hierarchy.IsHierarchy(focused))
         {
             Hierarchy.Up();
+            return;
         }
+
+        var e = Event.KeyboardEvent("up");
+        EditorWindow.focusedWindow.SendEvent(e);
     }
 
     [MenuItem("FocusTab/Left")]
     private static void LeftWindow()
     {
         Setup();
+
+        Debug.Log($"Settup complete, {focused is null}");
 
         var inDockIdx = tab.IndexOf(focused);
 
@@ -109,25 +194,34 @@ public class Ex : EditorWindow
         }
         else
         {
-            var wind = windows
-                .Where(w =>
-                    (FocusWindow.Left(focused, w) || FocusWindow.Same(focused, w))
-                    && !FocusWindow.Equal(focused, w)
-                )
-                .OrderBy(w => FocusWindow.Distance(focused, w))
-                .Where(w => !tab.Contains(w))
-                .FirstOrDefault();
+            var wind = windows;
 
-            var docks = FocusWindow.GetDockedWindows(wind);
+            wind = wind.Where(w =>
+                {
+                    return (FocusWindow.Left(focused, w) || FocusWindow.Same(focused, w))
+                        && !FocusWindow.Equal(focused, w);
+                })
+                .ToList();
+
+            wind = wind.OrderBy(w =>
+                {
+                    return FocusWindow.Distance(focused, w);
+                })
+                .ToList();
+            wind = wind.Where(w => !tab.Contains(w)).ToList();
+
+            var first = wind.FirstOrDefault();
+
+            var docks = FocusWindow.GetDockedWindows(first);
 
             if (docks.Count() > 1)
             {
-                var val = tabPos.GetValueOrDefault(wind.position);
+                var val = tabPos.GetValueOrDefault(first.position);
                 val.Focus();
             }
             else
             {
-                wind.Focus();
+                first.Focus();
             }
         }
     }
@@ -205,17 +299,14 @@ public class Ex : EditorWindow
             .Where(w => !tab.Contains(w))
             .FirstOrDefault();
 
-        var docks = FocusWindow.GetDockedWindows(wind);
+        var val = wind;
 
-        if (docks.Count() > 1)
+        if (FocusWindow.GetDockedWindows(wind).Count() > 1)
         {
-            var val = tabPos.GetValueOrDefault(wind.position);
-            val.Focus();
+            val = tabPos.GetValueOrDefault(wind.position);
         }
-        else
-        {
-            wind.Focus();
-        }
+
+        val.Focus();
     }
 
     static void TrackActiveTab()
@@ -277,8 +368,6 @@ public class FocusComponents
 
     public static Transform PreviousComponent(Transform component)
     {
-        Debug.Log($"componens {component.GetInstanceID()}");
-
         var parent = component.transform.parent;
 
         var ind = component.GetSiblingIndex();
@@ -342,6 +431,7 @@ public class FocusWindow
 
     public static List<EditorWindow> GetDockedWindows(EditorWindow targetWindow)
     {
+        Assert.IsNotNull(targetWindow, "window is null");
         List<EditorWindow> dockedWindows = new List<EditorWindow>();
 
         // Access the internal 'm_Parent' property of the target window
