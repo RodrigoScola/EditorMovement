@@ -25,7 +25,7 @@ namespace Focus
             return macros;
         }
 
-        public void AddMacro(UserMacros macro)
+        public void AddCommand(UserMacros macro)
         {
             if (macros.Contains(macro))
             {

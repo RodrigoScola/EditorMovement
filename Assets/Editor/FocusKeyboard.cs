@@ -104,11 +104,6 @@ public static class GlobalKeyListener
         {
             var pressingKey = (GetAsyncKeyState(key) & 0x8000) != 0;
 
-            if (pressingKey)
-            {
-                Debug.Log($"pressing key :{key}");
-            }
-
             if (pressingKey && key == 162 && hasControlModifier == false)
             {
                 hasControlModifier = true;

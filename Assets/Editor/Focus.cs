@@ -41,7 +41,7 @@ public class Ex : EditorWindow
         EditorCommands.Add("focus-bottom", Ex.Bottom);
         EditorCommands.Add("focus-Top", Ex.Top);
 
-        userdata.AddMacro(
+        userdata.AddCommand(
             new()
             {
                 keys = new List<Key>()
@@ -52,7 +52,7 @@ public class Ex : EditorWindow
             }
         );
 
-        userdata.AddMacro(
+        userdata.AddCommand(
             new()
             {
                 keys = new List<Key>()
@@ -63,7 +63,7 @@ public class Ex : EditorWindow
             }
         );
 
-        userdata.AddMacro(
+        userdata.AddCommand(
             new()
             {
                 keys = new List<Key>()
@@ -74,7 +74,7 @@ public class Ex : EditorWindow
             }
         );
 
-        userdata.AddMacro(
+        userdata.AddCommand(
             new()
             {
                 keys = new List<Key>()
@@ -101,8 +101,6 @@ public class Ex : EditorWindow
             tabPos.TryAdd(win.position, win);
         }
     }
-
-    private static int currentIndex;
 
     [MenuItem("FocusTab/PreviousComponent")]
     public static void Down()
@@ -156,8 +154,6 @@ public class Ex : EditorWindow
 
         var isinspector = focused is null || hierarchyType != focused.GetType() ? false : true;
 
-        Debug.Log("sending the right event");
-
         // if (!isinspector)
         //     return;
 
@@ -184,7 +180,6 @@ public class Ex : EditorWindow
     {
         Setup();
 
-        Debug.Log($"Settup complete, {focused is null}");
 
         var inDockIdx = tab.IndexOf(focused);
 
@@ -335,7 +330,6 @@ public class FocusComponents
 {
     public static Transform NextComponent(Transform component)
     {
-        Debug.Log($"componens {component.GetInstanceID()}");
 
         var parent = component.transform.parent;
 
