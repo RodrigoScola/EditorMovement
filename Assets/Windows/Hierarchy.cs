@@ -23,7 +23,7 @@ namespace Focus
                 return lastSelected;
             }
 
-            return FocusComponents.GetRootObjects().FirstOrDefault();
+            return Components.GetRootObjects().FirstOrDefault();
         }
 
         public static void Down()
@@ -31,7 +31,7 @@ namespace Focus
             var components = Selection.activeGameObject;
             components ??= GetLastSelected()?.gameObject;
 
-            var nextComponent = FocusComponents.PreviousComponent(components.transform);
+            var nextComponent = Components.PreviousComponent(components.transform);
 
             nextComponent ??= components.transform.GetChild(0);
 
@@ -46,7 +46,7 @@ namespace Focus
         {
             var current = Selection.activeGameObject.transform;
 
-            var nextComponent = FocusComponents.NextComponent(current);
+            var nextComponent = Components.NextComponent(current);
 
             nextComponent ??= current.parent.transform;
 

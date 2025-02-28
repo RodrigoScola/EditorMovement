@@ -1,0 +1,260 @@
+{
+    "macros": [
+        {
+            "commands": [
+                "focus-left"
+            ],
+            "keys": [
+                "Ctrl+H"
+            ]
+        },
+        {
+            "commands": [
+                "focus-right"
+            ],
+            "keys": [
+                "Ctrl+M"
+            ]
+        },
+        {
+            "commands": [
+                "focus-bottom"
+            ],
+            "keys": [
+                "Ctrl+J"
+            ]
+        },
+        {
+            "commands": [
+                "focus-top"
+            ],
+            "keys": [
+                "Ctrl+K"
+            ]
+        },
+        {
+            "commands": [
+                "focus-left"
+            ],
+            "keys": [
+                "Ctrl+H"
+            ]
+        },
+        {
+            "commands": [
+                "focus-right"
+            ],
+            "keys": [
+                "Ctrl+M"
+            ]
+        },
+        {
+            "commands": [
+                "focus-bottom"
+            ],
+            "keys": [
+                "Ctrl+J"
+            ]
+        },
+        {
+            "commands": [
+                "focus-top"
+            ],
+            "keys": [
+                "Ctrl+K"
+            ]
+        },
+        {
+            "commands": [
+                "focus-left"
+            ],
+            "keys": [
+                "Ctrl+H"
+            ]
+        },
+        {
+            "commands": [
+                "focus-right"
+            ],
+            "keys": [
+                "Ctrl+M"
+            ]
+        },
+        {
+            "commands": [
+                "focus-bottom"
+            ],
+            "keys": [
+                "Ctrl+J"
+            ]
+        },
+        {
+            "commands": [
+                "focus-top"
+            ],
+            "keys": [
+                "Ctrl+K"
+            ]
+        },
+        {
+            "commands": [
+                "focus-left"
+            ],
+            "keys": [
+                "Ctrl+H"
+            ]
+        },
+        {
+            "commands": [
+                "focus-right"
+            ],
+            "keys": [
+                "Ctrl+M"
+            ]
+        },
+        {
+            "commands": [
+                "focus-bottom"
+            ],
+            "keys": [
+                "Ctrl+J"
+            ]
+        },
+        {
+            "commands": [
+                "focus-top"
+            ],
+            "keys": [
+                "Ctrl+K"
+            ]
+        },
+        {
+            "commands": [
+                "focus-left"
+            ],
+            "keys": [
+                "Ctrl+H"
+            ]
+        },
+        {
+            "commands": [
+                "focus-right"
+            ],
+            "keys": [
+                "Ctrl+M"
+            ]
+        },
+        {
+            "commands": [
+                "focus-bottom"
+            ],
+            "keys": [
+                "Ctrl+J"
+            ]
+        },
+        {
+            "commands": [
+                "focus-top"
+            ],
+            "keys": [
+                "Ctrl+K"
+            ]
+        },
+        {
+            "commands": [
+                "focus-left"
+            ],
+            "keys": [
+                "Ctrl+H"
+            ]
+        },
+        {
+            "commands": [
+                "focus-right"
+            ],
+            "keys": [
+                "Ctrl+M"
+            ]
+        },
+        {
+            "commands": [
+                "focus-bottom"
+            ],
+            "keys": [
+                "Ctrl+J"
+            ]
+        },
+        {
+            "commands": [
+                "focus-top"
+            ],
+            "keys": [
+                "Ctrl+K"
+            ]
+        },
+        {
+            "commands": [
+                "focus-left"
+            ],
+            "keys": [
+                "Ctrl+H"
+            ]
+        },
+        {
+            "commands": [
+                "focus-right"
+            ],
+            "keys": [
+                "Ctrl+M"
+            ]
+        },
+        {
+            "commands": [
+                "focus-bottom"
+            ],
+            "keys": [
+                "Ctrl+J"
+            ]
+        },
+        {
+            "commands": [
+                "focus-top"
+            ],
+            "keys": [
+                "Ctrl+K"
+            ]
+        },
+        {
+            "commands": [
+                "focus-left"
+            ],
+            "keys": [
+                "Ctrl+H"
+            ]
+        },
+        {
+            "commands": [
+                "focus-right"
+            ],
+            "keys": [
+                "Ctrl+M"
+            ]
+        },
+        {
+            "commands": [
+                "focus-bottom"
+            ],
+            "keys": [
+                "Ctrl+J"
+            ]
+        },
+        {
+            "commands": [
+                "focus-top"
+            ],
+            "keys": [
+                "Ctrl+K"
+            ]
+        }
+    ]
+}

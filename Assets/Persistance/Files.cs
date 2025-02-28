@@ -2,41 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Unity.Plastic.Newtonsoft.Json;
+using Newtonsoft.Json;
 using UnityEngine;
 
-namespace Focus
+namespace Focus.Persistance
 {
-    public class UserMacros
-    {
-        public List<string> commands = new();
-        public List<Key> keys = new();
-        public List<string> context = new();
-    }
-
-    [System.Serializable]
-    public class UserData
-    {
-        [SerializeField]
-        private List<UserMacros> macros = new();
-
-        public List<UserMacros> Macros()
-        {
-            return macros;
-        }
-
-        public void AddCommand(UserMacros macro)
-        {
-            if (macros.Contains(macro))
-            {
-                return;
-            }
-
-            macros.Add(macro);
-        }
-    }
-
-    public class FileDataHandler
+    public class FileDataHandler<T>
+        where T : class
     {
         private string DirPath = "";
 
@@ -48,16 +20,16 @@ namespace Focus
             fileName = file;
         }
 
-        public UserData Load()
+        public T Load()
         {
             string path = Path.Combine(DirPath, fileName);
 
-            UserData data = null;
+            T data = default(T);
 
             if (!File.Exists(path))
             {
                 // Debug.LogError($"File {fileName} does not exist at ${path}");
-                return null;
+                return data;
             }
 
             try
@@ -72,7 +44,7 @@ namespace Focus
                     }
                 }
 
-                data = JsonConvert.DeserializeObject<UserData>(loaded);
+                data = JsonConvert.DeserializeObject<T>(loaded);
             }
             catch (Exception e)
             {
@@ -82,7 +54,7 @@ namespace Focus
             return data;
         }
 
-        public void Save(UserData data)
+        public void Save(T data)
         {
             string path = Path.Combine(DirPath, fileName);
 

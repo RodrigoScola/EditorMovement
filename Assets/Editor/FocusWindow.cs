@@ -1,31 +1,30 @@
-using Unity.VisualScripting;
 using UnityEditor;
-using UnityEditor.UIElements;
-using UnityEngine;
-using UnityEngine.UIElements;
 
-enum Pages
+namespace Focus
 {
-    Shortcuts = 1,
-}
-
-public class FocusDashboard : EditorWindow
-{
-    [MenuItem("Tools/FocusWindow")]
-    public static void ShowEditorWindow()
+    enum Pages
     {
-        GetWindow<FocusDashboard>();
+        Shortcuts = 1,
     }
 
-    private static Pages selectedPage = Pages.Shortcuts;
-
-    void ShowShortcuts() { }
-
-    public void OnGUI()
+    public class FocusDashboard : EditorWindow
     {
-        if (selectedPage == Pages.Shortcuts)
+        [MenuItem("Tools/FocusWindow")]
+        public static void ShowEditorWindow()
         {
-            ShowShortcuts();
+            GetWindow<FocusDashboard>();
+        }
+
+        private static Pages selectedPage = Pages.Shortcuts;
+
+        void ShowShortcuts() { }
+
+        public void OnGUI()
+        {
+            if (selectedPage == Pages.Shortcuts)
+            {
+                ShowShortcuts();
+            }
         }
     }
 }
