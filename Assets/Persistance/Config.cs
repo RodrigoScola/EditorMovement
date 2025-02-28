@@ -20,14 +20,13 @@ namespace Focus.Persistance
             return new FileConfig() { macros = macros.Select(m => m.ToFile()).ToList() };
         }
 
-        public void AddCommand(Macro macro)
+        public FocusConfig AddCommand(Macro macro)
         {
-            if (macros.Contains(macro))
+            if (!macros.Contains(macro))
             {
-                return;
+                macros.Add(macro);
             }
-
-            macros.Add(macro);
+            return this;
         }
     }
 }

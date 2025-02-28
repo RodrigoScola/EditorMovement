@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Focus.Persistance;
@@ -20,7 +21,7 @@ namespace Focus
 
         public EditorCommands commands = new();
 
-        static List<EditorWindow> windows = new();
+        static EditorWindow[] windows;
         static EditorWindow focused;
 
         static List<EditorWindow> tab = new();
@@ -30,83 +31,81 @@ namespace Focus
         static FocusEditor()
         {
             EditorApplication.update += TrackActiveTab;
+            EditorApplication.update += InitWindow;
+            EditorApplication.hierarchyChanged += UpdateWindows;
 
-            fileConfig = new(Directory.GetCurrentDirectory(), "userData.json");
-            // handler = new(Application.persistentDataPath, "userData.json");
-
-            var filedata = fileConfig.Load()?.ToUserData();
-            config ??= filedata;
-
-            if (config is null)
+            if (fileConfig is null)
             {
-                config = new();
-                fileConfig.Save(config.ToFile());
+                fileConfig = new(Directory.GetCurrentDirectory(), "userData.json");
+                // handler = new(Application.persistentDataPath, "userData.json");
+
+                var filedata = fileConfig.Load()?.ToUserData();
+                config ??= filedata;
+
+                if (config is null)
+                {
+                    config = new();
+                    fileConfig.Save(config.ToFile());
+                }
             }
 
-            EditorCommands.Add("focus-left", FocusEditor.LeftWindow);
-            EditorCommands.Add("focus-right", FocusEditor.RightWindow);
-            EditorCommands.Add("focus-bottom", FocusEditor.Bottom);
-            EditorCommands.Add("focus-Top", FocusEditor.Top);
-
-            config.AddCommand(
-                new()
-                {
-                    keys = new List<Key>()
-                    {
-                        new Key() { code = Keys.H, control = true },
-                    },
-                    commands = new List<string>() { "focus-left" },
-                }
-            );
-
-            config.AddCommand(
-                new()
-                {
-                    keys = new List<Key>()
-                    {
-                        new Key() { code = Keys.L, control = true },
-                    },
-                    commands = new List<string>() { "focus-right" },
-                }
-            );
-
-            config.AddCommand(
-                new()
-                {
-                    keys = new List<Key>()
-                    {
-                        new Key() { code = Keys.J, control = true },
-                    },
-                    commands = new List<string>() { "focus-bottom" },
-                }
-            );
-
-            config.AddCommand(
-                new()
-                {
-                    keys = new List<Key>()
-                    {
-                        new Key() { code = Keys.K, control = true },
-                    },
-                    commands = new List<string>() { "focus-top" },
-                }
-            );
+            EditorCommands.Add("editor.window.focus.left", FocusEditor.LeftWindow);
+            EditorCommands.Add("editor.window.focus.right", FocusEditor.RightWindow);
+            EditorCommands.Add("editor.window.focus.bottom", FocusEditor.Bottom);
+            EditorCommands.Add("editor.window.focus.top", FocusEditor.Top);
 
             fileConfig.Save(config.ToFile());
         }
 
-        static void Setup()
+        static Dictionary<EditorWindow, List<EditorWindow>> dockedWindows;
+
+        static void InitWindow()
         {
-            windows = Resources.FindObjectsOfTypeAll<EditorWindow>().ToList();
-            focused = EditorWindow.focusedWindow;
-            Assert.IsNotNull(focused, "focused is null on setup");
-            tab = FocusWindow.GetDockedWindows(focused);
+            UpdateWindows();
+            EditorApplication.update -= InitWindow;
+        }
+
+        static void UpdateWindows()
+        {
+            windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+
+            dockedWindows ??= new();
+
+            dockedWindows.Clear();
+
+            foreach (var window in windows)
+            {
+                try
+                {
+                    var w = FocusWindow.GetDockedWindows(window);
+                    dockedWindows.Add(window, w);
+
+                    UnityEngine.Debug.Log($"added {w.Count} to {window.titleContent.text}");
+                }
+                catch (Exception e)
+                {
+                    UnityEngine.Debug.LogError(e);
+                    UnityEngine.Debug.LogError(window.titleContent.text);
+                }
+            }
 
             //todo: make this better.
             foreach (var win in windows.DistinctBy(f => f.position))
             {
                 tabPos.TryAdd(win.position, win);
             }
+        }
+
+        static void Setup()
+        {
+            focused = EditorWindow.focusedWindow;
+
+            // tab = FocusWindow.GetDockedWindows(focused);
+            tab = dockedWindows.GetValueOrDefault(focused);
+
+            Assert.IsTrue(dockedWindows.ContainsKey(focused), "the window is contained");
+
+            Assert.IsNotNull(focused, "focused is null on setup");
         }
 
         [MenuItem("FocusTab/PreviousComponent")]
@@ -185,46 +184,45 @@ namespace Focus
         [MenuItem("FocusTab/Left")]
         private static void LeftWindow()
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             Setup();
 
-            var inDockIdx = tab.IndexOf(focused);
+            var el = tab.ElementAtOrDefault(tab.IndexOf(focused) - 1);
 
-            if (tab.Count > 1 && inDockIdx != 0)
+            if (el != null)
             {
-                tab.ElementAt(inDockIdx - 1).Focus();
+                el.Focus();
             }
             else
             {
                 var wind = windows;
 
-                wind = wind.Where(w =>
-                    {
-                        return (FocusWindow.Left(focused, w) || FocusWindow.Same(focused, w))
-                            && !FocusWindow.Equal(focused, w);
-                    })
-                    .ToList();
+                var first = wind.Where(w =>
+                        (FocusWindow.Left(focused, w) || FocusWindow.Same(focused, w))
+                        && !FocusWindow.Equal(focused, w)
+                    )
+                    .Where(w => !tab.Contains(w))
+                    .OrderBy(w => FocusWindow.Distance(focused, w))
+                    .FirstOrDefault();
 
-                wind = wind.OrderBy(w =>
-                    {
-                        return FocusWindow.Distance(focused, w);
-                    })
-                    .ToList();
-                wind = wind.Where(w => !tab.Contains(w)).ToList();
+                dockedWindows.TryGetValue(first, out var docks);
 
-                var first = wind.FirstOrDefault();
-
-                var docks = FocusWindow.GetDockedWindows(first);
-
-                if (docks.Count() > 1)
-                {
-                    var val = tabPos.GetValueOrDefault(first.position);
-                    val.Focus();
-                }
-                else
+                if (docks.Count == 1)
                 {
                     first.Focus();
+                    return;
                 }
+
+                var val = tabPos.GetValueOrDefault(first.position);
+                val.Focus();
             }
+
+            stopwatch.Stop();
+
+            TimeSpan elapsed = stopwatch.Elapsed;
+            UnityEngine.Debug.Log($"Elapsed Time: {elapsed.TotalMilliseconds} ms");
         }
 
         [MenuItem("FocusTab/Right")]
@@ -238,7 +236,7 @@ namespace Focus
 
             if (tab.Count > 1 && inDockIdx != tab.Count() - 1)
             {
-                tab.ElementAt(inDockIdx + 1).Focus();
+                tab[inDockIdx + 1].Focus();
             }
             else
             {

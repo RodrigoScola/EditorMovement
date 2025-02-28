@@ -13,14 +13,37 @@ namespace Focus
         public Keys code;
         public long lastChecked;
         public bool pressed;
-        public bool control;
-        public bool shift;
-        public bool alt;
+        public bool control { get; private set; }
+        public bool shift { get; private set; }
+        public bool alt { get; private set; }
 
         private static readonly string CTRL = "Ctrl";
         private static readonly string SHIFT = "Shift";
         private static readonly string ALT = "Alt";
         private static readonly char DELIMITER = '+';
+
+        public static Key New(Keys code)
+        {
+            return new Key() { code = code };
+        }
+
+        public Key Control(bool val)
+        {
+            control = val;
+            return this;
+        }
+
+        public Key Shift(bool val)
+        {
+            shift = val;
+            return this;
+        }
+
+        public Key Alt(bool val)
+        {
+            alt = val;
+            return this;
+        }
 
         public static Key ToKey(string str)
         {

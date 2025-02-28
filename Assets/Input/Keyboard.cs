@@ -30,14 +30,7 @@ namespace Focus
 
             EditorApplication.update += CheckKeys;
 
-            var a = new Key() { code = Keys.A };
-            var d = new Key() { code = Keys.D };
-
             tempPressing ??= new();
-
-            // macros = Ex.userdata.macros;
-
-            // Focused
 
             var userMacros = FocusEditor.config.Macros();
 
@@ -104,7 +97,7 @@ namespace Focus
 
                 if (pressingKey && hasControlModifier && (key != 162 && key != 17))
                 {
-                    tempKey.control = hasControlModifier;
+                    tempKey.Control(hasControlModifier);
 
                     hasControlModifier = false;
                 }

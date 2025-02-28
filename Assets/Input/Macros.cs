@@ -18,5 +18,37 @@ namespace Focus
                 keys = keys.Select(key => key.ToString()).ToList(),
             };
         }
+
+        public static Macro New()
+        {
+            return new Macro();
+        }
+
+        public Macro Command(string commandName)
+        {
+            if (!this.commands.Contains(commandName))
+            {
+                this.commands.Add(commandName);
+            }
+            return this;
+        }
+
+        public Macro Commands(List<string> val)
+        {
+            this.commands = val;
+            return this;
+        }
+
+        public Macro Key(Key key)
+        {
+            this.keys.Add(key);
+            return this;
+        }
+
+        public Macro Keys(List<Key> keys)
+        {
+            this.keys = keys;
+            return this;
+        }
     }
 }
