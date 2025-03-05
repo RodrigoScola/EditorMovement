@@ -10,11 +10,16 @@ namespace Focus
 {
     public class FocusWindow
     {
+        public static float Distance(float aX, float aY, float bX, float bY) =>
+            Vector2.Distance(new Vector2(aX, aY), new Vector2(bX, bY));
+
+        public static float Distance(Vector2 a, Vector2 b) => Vector2.Distance(a, b);
+
+        public static float Distance(Rect a, Rect b) =>
+            Vector2.Distance(new Vector2(a.x, a.y), new Vector2(b.x, b.y));
+
         public static float Distance(EditorWindow a, EditorWindow b) =>
-            Vector2.Distance(
-                new Vector2(a.position.x, a.position.y),
-                new Vector2(b.position.x, b.position.y)
-            );
+            Distance(a.position, b.position);
 
         public static bool Top(EditorWindow a, EditorWindow b) => a.position.y > b.position.y;
 
@@ -207,5 +212,8 @@ namespace Focus
             bool isExpanded = IsExpanded(selected);
             Debug.Log($"{selected.name} is {(isExpanded ? "expanded" : "collapsed")}");
         }
+
+        public static bool InBounds(Vector2 min, Vector2 max, Vector2 point) =>
+            point.x >= min.x && point.x <= max.x && point.y >= min.y && point.y <= max.y;
     }
 }

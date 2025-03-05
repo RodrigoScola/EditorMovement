@@ -121,11 +121,23 @@ namespace Focus
         [EnumMember(Value = "LShift")]
         LShift = 16,
 
-        [EnumMember(Value = "Ctrl")]
+        [EnumMember(Value = "RShift")]
+        RShift = 160,
+
+        [EnumMember(Value = "LCtrl")]
         LCtrl = 17,
+
+        [EnumMember(Value = "RCtrl")]
+        RCtrl = 170,
 
         [EnumMember(Value = "Alt")]
         LAlt = 18,
+
+        [EnumMember(Value = "RAlt")]
+        RAlt = 180,
+
+        [EnumMember(Value = "LAlt")]
+        Alt = 164,
 
         [EnumMember(Value = "Tab")]
         Tab = 9,
@@ -216,5 +228,7 @@ namespace Focus
 
         [EnumMember(Value = "ESC")]
         Escape = 27,
+
+        OtherCtrl = 162,
     }
 }

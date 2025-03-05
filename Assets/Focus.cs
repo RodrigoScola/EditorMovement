@@ -49,10 +49,17 @@ namespace Focus
                 }
             }
 
+            //switching windows
             EditorCommands.Add("editor.window.focus.left", FocusEditor.LeftWindow);
             EditorCommands.Add("editor.window.focus.right", FocusEditor.RightWindow);
             EditorCommands.Add("editor.window.focus.bottom", FocusEditor.Bottom);
             EditorCommands.Add("editor.window.focus.top", FocusEditor.Top);
+
+            //switching docs
+            EditorCommands.Add("editor.window.switch.left", FocusEditor.FocusLeftDock);
+            EditorCommands.Add("editor.window.switch.right", FocusEditor.FocusRightDock);
+            EditorCommands.Add("editor.window.switch.top", FocusEditor.FocusRightDock);
+            EditorCommands.Add("editor.window.switch.bottom", FocusEditor.FocusRightDock);
 
             fileConfig.Save(config.ToFile());
         }
@@ -72,6 +79,8 @@ namespace Focus
             dockedWindows ??= new();
 
             dockedWindows.Clear();
+            tabPos ??= new();
+            tabPos.Clear();
 
             foreach (var window in windows)
             {
@@ -184,9 +193,6 @@ namespace Focus
         [MenuItem("FocusTab/Left")]
         private static void LeftWindow()
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
             Setup();
 
             var el = tab.ElementAtOrDefault(tab.IndexOf(focused) - 1);
@@ -197,40 +203,48 @@ namespace Focus
             }
             else
             {
-                var wind = windows;
+                FocusLeftDock();
+            }
+        }
 
-                var first = wind.Where(w =>
-                        (FocusWindow.Left(focused, w) || FocusWindow.Same(focused, w))
-                        && !FocusWindow.Equal(focused, w)
-                    )
-                    .Where(w => !tab.Contains(w))
-                    .OrderBy(w => FocusWindow.Distance(focused, w))
-                    .FirstOrDefault();
+        private static void FocusLeftDock()
+        {
+            Setup();
 
-                dockedWindows.TryGetValue(first, out var docks);
+            Vector2 cursor = new Vector2(
+                focused.position.min.x - 4,
+                focused.position.min.y + (focused.position.height / 2)
+            );
 
-                if (docks.Count == 1)
-                {
-                    first.Focus();
-                    return;
-                }
+            var first = windows
+                .Where(w => !tab.Contains(w))
+                .Where(window =>
+                    window.position.y == focused.position.y
+                    || FocusWindow.InBounds(window.position.min, window.position.max, cursor)
+                )
+                .OrderBy(w => FocusWindow.Distance(focused.position.min, w.position.max))
+                .FirstOrDefault();
 
-                var val = tabPos.GetValueOrDefault(first.position);
-                val.Focus();
+            if (!first)
+            {
+                return;
             }
 
-            stopwatch.Stop();
+            dockedWindows.TryGetValue(first, out var docks);
 
-            TimeSpan elapsed = stopwatch.Elapsed;
-            UnityEngine.Debug.Log($"Elapsed Time: {elapsed.TotalMilliseconds} ms");
+            if (docks.Count == 1)
+            {
+                first.Focus();
+                return;
+            }
+
+            tabPos.GetValueOrDefault(first.position)?.Focus();
         }
 
         [MenuItem("FocusTab/Right")]
         private static void RightWindow()
         {
             Setup();
-
-            var dockedWindows = FocusWindow.GetDockedWindows(focused);
 
             var inDockIdx = tab.IndexOf(focused);
 
@@ -240,26 +254,46 @@ namespace Focus
             }
             else
             {
-                var wind = windows
-                    .Where(w =>
-                        (FocusWindow.Right(focused, w) || FocusWindow.Same(focused, w))
-                        && !FocusWindow.Equal(focused, w)
-                    )
-                    .OrderBy(w => FocusWindow.Distance(focused, w))
+                FocusRightDock();
+            }
+        }
+
+        private static void FocusRightDock()
+        {
+            Setup();
+            var other = windows.Where(w =>
+                (FocusWindow.Right(focused, w) || FocusWindow.Same(focused, w))
+                && !FocusWindow.Equal(focused, w)
+            );
+
+            var wind = windows
+                .Where(window => window.position.y == focused.position.y)
+                .OrderBy(w => FocusWindow.Distance(focused.position.max, w.position.min))
+                .Where(w => !tab.Contains(w))
+                .FirstOrDefault();
+
+            if (!wind)
+            {
+                Vector2 cursor = new Vector2(
+                    focused.position.max.x + 4,
+                    focused.position.min.y + (focused.position.height / 2)
+                );
+                wind = windows
+                    .Where(w => FocusWindow.InBounds(w.position.min, w.position.max, cursor))
                     .Where(w => !tab.Contains(w))
                     .FirstOrDefault();
+            }
 
-                var docks = FocusWindow.GetDockedWindows(wind);
+            var docks = FocusWindow.GetDockedWindows(wind);
 
-                var val = tabPos.GetValueOrDefault(wind.position);
-                if (docks.Count() > 1 && val != null)
-                {
-                    val.Focus();
-                }
-                else
-                {
-                    wind.Focus();
-                }
+            var val = tabPos.GetValueOrDefault(wind.position);
+            if (docks.Count() > 1 && val != null)
+            {
+                val.Focus();
+            }
+            else
+            {
+                wind.Focus();
             }
         }
 

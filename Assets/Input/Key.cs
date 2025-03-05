@@ -22,6 +22,23 @@ namespace Focus
         private static readonly string ALT = "Alt";
         private static readonly char DELIMITER = '+';
 
+        public static bool IsControl(int key) => IsControl((Keys)key);
+
+        public static bool IsControl(Keys key) =>
+            key == Keys.OtherCtrl || key == Keys.LCtrl || key == Keys.RCtrl;
+
+        public static bool IsModifier(int code) => IsModifier((Keys)code);
+
+        public static bool IsModifier(Keys code) =>
+            code == Keys.LShift
+            || code == Keys.LCtrl
+            || code == Keys.LAlt
+            || code == Keys.RShift
+            || code == Keys.RCtrl
+            || code == Keys.RAlt
+            || code == Keys.OtherCtrl
+            || code == Keys.Alt;
+
         public static Key New(Keys code)
         {
             return new Key() { code = code };

@@ -67,6 +67,7 @@ namespace Focus
         }
 
         private static bool hasControlModifier = false;
+        private static bool hasShiftModifier = false;
 
         private static void CheckKeys()
         {
@@ -88,14 +89,24 @@ namespace Focus
                     Debug.Log($"key: {key}");
                 }
 
-                if (pressingKey && key == 162 && hasControlModifier == false)
+                if (pressingKey && Key.IsControl(key) && hasControlModifier == false)
                 {
                     hasControlModifier = true;
                 }
+                if (pressingKey && (Keys)key == Keys.LShift && hasShiftModifier == false)
+                {
+                    hasShiftModifier = true;
+                }
 
                 tempPressing.TryGetValue(key, out tempKey);
+                if (pressingKey && hasShiftModifier && !Key.IsModifier(key))
+                {
+                    tempKey.Shift(hasShiftModifier);
 
-                if (pressingKey && hasControlModifier && (key != 162 && key != 17))
+                    hasShiftModifier = false;
+                }
+
+                if (pressingKey && hasControlModifier && !Key.IsModifier(key))
                 {
                     tempKey.Control(hasControlModifier);
 
@@ -113,9 +124,11 @@ namespace Focus
                 tempPressing.Remove(key);
                 tempPressing.Add(key, tempKey);
 
-                if (wasReleased)
+                if (wasReleased && !Key.IsModifier(tempKey.code))
                 {
                     tempKey.pressed = true;
+                    hasControlModifier = false;
+                    hasShiftModifier = false;
                     currentKeys.Add(tempKey);
                 }
             }
