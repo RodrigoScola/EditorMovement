@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Focus.Persistance;
 using NUnit.Framework;
 using Unity.VisualScripting;
+using UnityEditor.Search;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -58,10 +60,43 @@ namespace Focus
             //switching docs
             EditorCommands.Add("editor.window.switch.left", FocusEditor.FocusLeftDock);
             EditorCommands.Add("editor.window.switch.right", FocusEditor.FocusRightDock);
-            EditorCommands.Add("editor.window.switch.top", FocusEditor.FocusRightDock);
-            EditorCommands.Add("editor.window.switch.bottom", FocusEditor.FocusRightDock);
+            //todo
+            // EditorCommands.Add("editor.window.switch.top", FocusEditor.FocusRightDock);
+            // EditorCommands.Add("editor.window.switch.bottom", FocusEditor.FocusRightDock);
+
+            //general window commands
+
+            EditorCommands.Add("editor.window.down", FocusEditor.Down);
+            EditorCommands.Add("editor.window.up", FocusEditor.Up);
+            EditorCommands.Add("editor.window.left", FocusEditor.Left);
+            EditorCommands.Add("editor.window.right", FocusEditor.Right);
+            EditorCommands.Add(
+                "window.focus.inspector",
+                () => FocusWindow.FocusWindowByName("Inspector")
+            );
+            EditorCommands.Add("keyboard.down", () => Keyboard("down"));
+            EditorCommands.Add("keyboard.up", () => Keyboard("up"));
+            EditorCommands.Add(
+                "editor.search.contextual",
+                () =>
+                {
+                    SearchContext context = SearchService.CreateContext("t:GameObject");
+
+                    // Open the search window with the specified context
+                    var b = SearchService.ShowWindow(context);
+                    b.Focus();
+                }
+            );
 
             fileConfig.Save(config.ToFile());
+        }
+
+        public static Action Exec(string item)
+        {
+            return () =>
+            {
+                EditorApplication.ExecuteMenuItem(item);
+            };
         }
 
         static Dictionary<EditorWindow, List<EditorWindow>> dockedWindows;
@@ -115,6 +150,12 @@ namespace Focus
             Assert.IsTrue(dockedWindows.ContainsKey(focused), "the window is contained");
 
             Assert.IsNotNull(focused, "focused is null on setup");
+        }
+
+        public static void Keyboard(string name)
+        {
+            var e = Event.KeyboardEvent(name);
+            EditorWindow.focusedWindow.SendEvent(e);
         }
 
         [MenuItem("FocusTab/PreviousComponent")]
@@ -301,45 +342,49 @@ namespace Focus
         private static void Top()
         {
             Setup();
+            Vector2 cursor = new Vector2(focused.position.min.x, focused.position.min.y - 94);
 
             var wind = windows
-                .Where(w => FocusWindow.Top(focused, w) && !FocusWindow.Equal(focused, w))
-                .OrderBy(w => FocusWindow.Distance(focused, w))
+                .Where(window =>
+                {
+                    return FocusWindow.InBounds(window.position.min, window.position.max, cursor);
+                })
+                .OrderBy(w => FocusWindow.Distance(focused.position.max, w.position.min))
                 .Where(w => !tab.Contains(w))
                 .FirstOrDefault();
 
-            var docks = FocusWindow.GetDockedWindows(wind);
+            if (!wind && FocusWindow.GetDockedWindows(wind).Count() > 1)
+            {
+                wind = tabPos.GetValueOrDefault(wind.position);
+            }
 
-            if (docks.Count() > 1)
-            {
-                var val = tabPos.GetValueOrDefault(wind.position);
-                val.Focus();
-            }
-            else
-            {
-                wind.Focus();
-            }
+            wind.Focus();
         }
 
         [MenuItem("FocusTab/Bottom")]
         private static void Bottom()
         {
             Setup();
+            Vector2 cursor = new Vector2(
+                focused.position.min.x + (focused.position.width / 2),
+                focused.position.max.y + 94
+            );
 
             var wind = windows
-                .Where(w => FocusWindow.Bottom(focused, w) && !FocusWindow.Equal(focused, w))
-                .OrderBy(w => FocusWindow.Distance(focused, w))
+                .Where(window =>
+                {
+                    return FocusWindow.InBounds(window.position.min, window.position.max, cursor);
+                })
+                .OrderBy(w => FocusWindow.Distance(focused.position.max, w.position.min))
                 .Where(w => !tab.Contains(w))
                 .FirstOrDefault();
 
-            var val = wind;
-
-            if (FocusWindow.GetDockedWindows(wind).Count() > 1)
+            if (!wind && FocusWindow.GetDockedWindows(wind).Count() > 1)
             {
-                val = tabPos.GetValueOrDefault(wind.position);
+                wind = tabPos.GetValueOrDefault(wind.position);
             }
 
-            val.Focus();
+            wind.Focus();
         }
 
         static void TrackActiveTab()

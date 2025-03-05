@@ -1,1 +1,18 @@
-{"macros":[{"commands":["editor.window.focus.left"],"keys":["Ctrl+H"]},{"commands":["editor.window.switch.left"],"keys":["Ctrl+Shift+H"]},{"commands":["editor.window.switch.right"],"keys":["Ctrl+Shift+L"]},{"commands":["editor.window.focus.right"],"keys":["Ctrl+L"]},{"commands":["editor.window.focus.bottom"],"keys":["Ctrl+J"]},{"commands":["editor.window.focus.top"],"keys":["Ctrl+K"]}]}
+{
+	"macros": [
+		{ "commands": ["editor.window.focus.left"], "keys": ["Ctrl+H"] },
+		{ "commands": ["editor.window.switch.left"], "keys": ["Ctrl+Shift+H"] },
+		{ "commands": ["editor.window.switch.right"], "keys": ["Ctrl+Shift+L"] },
+		{ "commands": ["editor.window.focus.right"], "keys": ["Ctrl+L"] },
+		{ "commands": ["editor.window.focus.bottom"], "keys": ["Ctrl+J"] },
+		{ "commands": ["editor.window.focus.top"], "keys": ["Ctrl+K"] },
+		{ "commands": ["editor.window.down"], "keys": ["J"] },
+		{ "commands": ["editor.window.up"], "keys": ["K"] },
+		{ "commands": ["editor.window.left"], "keys": ["H"] },
+		{ "commands": ["editor.window.right"], "keys": ["M"] },
+		{ "commands": ["editor.search.contextual"], "keys": ["Ctrl+Shift+F"] },
+		{ "commands": ["keyboard.up"], "keys": ["Ctrl+T"] },
+		{ "commands": ["keyboard.down"], "keys": ["Ctrl+N"] },
+		{ "commands": ["window.focus.inspector"], "keys": ["Ctrl+Shift+I"] }
+	]
+}

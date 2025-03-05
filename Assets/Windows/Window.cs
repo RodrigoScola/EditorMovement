@@ -215,5 +215,34 @@ namespace Focus
 
         public static bool InBounds(Vector2 min, Vector2 max, Vector2 point) =>
             point.x >= min.x && point.x <= max.x && point.y >= min.y && point.y <= max.y;
+
+        public static void FocusWindowByName(string windowName)
+        {
+            var window = GetEditorWindowByName(windowName);
+            if (window != null)
+            {
+                window.Focus();
+                Debug.Log($"{windowName} window focused.");
+            }
+            else
+            {
+                Debug.LogWarning($"Window with name '{windowName}' not found.");
+            }
+        }
+
+        private static EditorWindow GetEditorWindowByName(string windowName)
+        {
+            // Find all open EditorWindows
+            var allWindows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+            foreach (var window in allWindows)
+            {
+                // Check if the window title matches the provided name
+                if (window.titleContent.text == windowName)
+                {
+                    return window;
+                }
+            }
+            return null; // If no matching window is found
+        }
     }
 }

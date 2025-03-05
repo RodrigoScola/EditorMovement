@@ -79,16 +79,15 @@ namespace Focus
                 return;
             }
 
-            var tempKey = new Key();
             for (int key = 2; key < 256; key++)
             {
+                var tempKey = new Key();
                 var pressingKey = (GetAsyncKeyState(key) & 0x8000) != 0;
 
                 if (pressingKey)
                 {
-                    Debug.Log($"key: {key}");
+                    Debug.Log($"pressing {key}");
                 }
-
                 if (pressingKey && Key.IsControl(key) && hasControlModifier == false)
                 {
                     hasControlModifier = true;
@@ -99,17 +98,14 @@ namespace Focus
                 }
 
                 tempPressing.TryGetValue(key, out tempKey);
+
                 if (pressingKey && hasShiftModifier && !Key.IsModifier(key))
                 {
-                    tempKey.Shift(hasShiftModifier);
-
                     hasShiftModifier = false;
                 }
 
                 if (pressingKey && hasControlModifier && !Key.IsModifier(key))
                 {
-                    tempKey.Control(hasControlModifier);
-
                     hasControlModifier = false;
                 }
 
@@ -127,6 +123,10 @@ namespace Focus
                 if (wasReleased && !Key.IsModifier(tempKey.code))
                 {
                     tempKey.pressed = true;
+
+                    tempKey.Shift(hasShiftModifier);
+                    tempKey.Control(hasControlModifier);
+
                     hasControlModifier = false;
                     hasShiftModifier = false;
                     currentKeys.Add(tempKey);
@@ -151,10 +151,7 @@ namespace Focus
                     macro();
                 }
 
-                if (hasControlModifier == true)
-                {
-                    hasControlModifier = false;
-                }
+                hasControlModifier = false;
                 currentKeys.Clear();
             }
         }

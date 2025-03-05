@@ -41,46 +41,46 @@ namespace Focus
         L = 76,
 
         [EnumMember(Value = "M")]
-        M = 76,
+        M = 77,
 
         [EnumMember(Value = "N")]
-        N = 77,
+        N = 78,
 
         [EnumMember(Value = "O")]
-        O = 78,
+        O = 79,
 
         [EnumMember(Value = "P")]
-        P = 79,
+        P = 80,
 
         [EnumMember(Value = "Q")]
-        Q = 80,
+        Q = 81,
 
         [EnumMember(Value = "R")]
-        R = 81,
+        R = 82,
 
         [EnumMember(Value = "S")]
-        S = 82,
+        S = 83,
 
         [EnumMember(Value = "T")]
-        T = 83,
+        T = 84,
 
         [EnumMember(Value = "U")]
-        U = 83,
+        U = 85,
 
         [EnumMember(Value = "V")]
-        V = 84,
+        V = 86,
 
         [EnumMember(Value = "W")]
-        W = 85,
+        W = 87,
 
         [EnumMember(Value = "X")]
-        X = 86,
+        X = 88,
 
         [EnumMember(Value = "Y")]
-        Y = 87,
+        Y = 89,
 
         [EnumMember(Value = "Z")]
-        Z = 88,
+        Z = 90,
 
         [EnumMember(Value = "1")]
         One = 49,
@@ -229,6 +229,6 @@ namespace Focus
         [EnumMember(Value = "ESC")]
         Escape = 27,
 
-        OtherCtrl = 162,
+        // OtherCtrl = 162,
     }
 }
