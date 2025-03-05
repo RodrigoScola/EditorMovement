@@ -13,6 +13,9 @@
 		{ "commands": ["editor.search.contextual"], "keys": ["Ctrl+Shift+F"] },
 		{ "commands": ["keyboard.up"], "keys": ["Ctrl+T"] },
 		{ "commands": ["keyboard.down"], "keys": ["Ctrl+N"] },
-		{ "commands": ["window.focus.inspector"], "keys": ["Ctrl+Shift+I"] }
+		{ "commands": ["window.focus.inspector"], "keys": ["Ctrl+Shift+I"] },
+		{ "commands": ["focus.action.save"], "keys": ["Ctrl+Shift+S"] },
+		{ "commands": ["focus.action.reload"], "keys": ["Ctrl+Shift+R"] },
+		{ "commands": ["window.display.pop"], "keys": ["Space", "P"] }
 	]
 }

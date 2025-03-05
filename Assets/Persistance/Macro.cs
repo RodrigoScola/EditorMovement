@@ -21,18 +21,18 @@ namespace Focus.Persistance
             return userMacro;
         }
 
-        public static FileMacro ToFile(Macro macro)
-        {
-            var m = new FileMacro();
+        // public static FileMacro ToFile(Macro macro)
+        // {
+        //     var m = new FileMacro();
 
-            m.commands = macro.commands;
+        //     m.commands = macro.commands;
 
-            foreach (var key in macro.keys)
-            {
-                m.keys.Add(key.ToString());
-            }
+        //     foreach (var key in macro.keys)
+        //     {
+        //         m.keys.Add(key.ToString());
+        //     }
 
-            return m;
-        }
+        //     return m;
+        // }
     }
 }

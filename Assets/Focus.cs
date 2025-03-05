@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Focus.Persistance;
 using NUnit.Framework;
 using Unity.VisualScripting;
@@ -32,6 +33,23 @@ namespace Focus
 
         static FocusEditor()
         {
+            Load();
+        }
+
+        static void Reload()
+        {
+            fileConfig = null;
+            EditorApplication.update -= TrackActiveTab;
+            EditorApplication.update -= InitWindow;
+            EditorApplication.hierarchyChanged -= UpdateWindows;
+
+            config = null;
+            Load();
+        }
+
+        static void Load()
+        {
+            UnityEngine.Debug.Log("Reloading config");
             EditorApplication.update += TrackActiveTab;
             EditorApplication.update += InitWindow;
             EditorApplication.hierarchyChanged += UpdateWindows;
@@ -51,42 +69,27 @@ namespace Focus
                 }
             }
 
-            //switching windows
-            EditorCommands.Add("editor.window.focus.left", FocusEditor.LeftWindow);
-            EditorCommands.Add("editor.window.focus.right", FocusEditor.RightWindow);
-            EditorCommands.Add("editor.window.focus.bottom", FocusEditor.Bottom);
-            EditorCommands.Add("editor.window.focus.top", FocusEditor.Top);
-
-            //switching docs
-            EditorCommands.Add("editor.window.switch.left", FocusEditor.FocusLeftDock);
-            EditorCommands.Add("editor.window.switch.right", FocusEditor.FocusRightDock);
-            //todo
-            // EditorCommands.Add("editor.window.switch.top", FocusEditor.FocusRightDock);
-            // EditorCommands.Add("editor.window.switch.bottom", FocusEditor.FocusRightDock);
-
-            //general window commands
-
-            EditorCommands.Add("editor.window.down", FocusEditor.Down);
-            EditorCommands.Add("editor.window.up", FocusEditor.Up);
-            EditorCommands.Add("editor.window.left", FocusEditor.Left);
-            EditorCommands.Add("editor.window.right", FocusEditor.Right);
+            EditorCommands.Init();
             EditorCommands.Add(
-                "window.focus.inspector",
-                () => FocusWindow.FocusWindowByName("Inspector")
-            );
-            EditorCommands.Add("keyboard.down", () => Keyboard("down"));
-            EditorCommands.Add("keyboard.up", () => Keyboard("up"));
-            EditorCommands.Add(
-                "editor.search.contextual",
+                "focus.action.save",
                 () =>
                 {
-                    SearchContext context = SearchService.CreateContext("t:GameObject");
-
-                    // Open the search window with the specified context
-                    var b = SearchService.ShowWindow(context);
-                    b.Focus();
+                    UnityEngine.Debug.Log("Saving Configuration");
+                    FileConfig data = config.ToFile();
+                    data.macros.ForEach(m =>
+                    {
+                        if (m.commands.Contains("window.display.pop"))
+                        {
+                            m.keys.ForEach(UnityEngine.Debug.Log);
+                        }
+                    });
+                    fileConfig.Save(config.ToFile());
                 }
             );
+
+            EditorCommands.Add("focus.action.reload", () => Reload());
+
+            //switching windows
 
             fileConfig.Save(config.ToFile());
         }
@@ -182,7 +185,7 @@ namespace Focus
         }
 
         [MenuItem("FocusTab/ParentComponent")]
-        static void Left()
+        public static void Left()
         {
             Setup();
 
@@ -196,7 +199,7 @@ namespace Focus
         }
 
         [MenuItem("FocusTab/ExpandTree")]
-        static void Right()
+        public static void Right()
         {
             Setup();
             if (Hierarchy.IsHierarchy(focused))
@@ -218,7 +221,7 @@ namespace Focus
         }
 
         [MenuItem("FocusTab/NextComponent")]
-        static void Up()
+        public static void Up()
         {
             Setup();
             if (Hierarchy.IsHierarchy(focused))
@@ -232,7 +235,7 @@ namespace Focus
         }
 
         [MenuItem("FocusTab/Left")]
-        private static void LeftWindow()
+        public static void LeftWindow()
         {
             Setup();
 
@@ -248,7 +251,7 @@ namespace Focus
             }
         }
 
-        private static void FocusLeftDock()
+        public static void FocusLeftDock()
         {
             Setup();
 
@@ -283,7 +286,7 @@ namespace Focus
         }
 
         [MenuItem("FocusTab/Right")]
-        private static void RightWindow()
+        public static void RightWindow()
         {
             Setup();
 
@@ -299,7 +302,7 @@ namespace Focus
             }
         }
 
-        private static void FocusRightDock()
+        public static void FocusRightDock()
         {
             Setup();
             var other = windows.Where(w =>
@@ -339,7 +342,7 @@ namespace Focus
         }
 
         [MenuItem("FocusTab/Top")]
-        private static void Top()
+        public static void Top()
         {
             Setup();
             Vector2 cursor = new Vector2(focused.position.min.x, focused.position.min.y - 94);
@@ -362,7 +365,7 @@ namespace Focus
         }
 
         [MenuItem("FocusTab/Bottom")]
-        private static void Bottom()
+        public static void Bottom()
         {
             Setup();
             Vector2 cursor = new Vector2(
