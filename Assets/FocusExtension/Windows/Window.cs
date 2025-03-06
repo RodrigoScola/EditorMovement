@@ -218,16 +218,7 @@ namespace Focus
 
         public static void FocusWindowByName(string windowName)
         {
-            var window = GetEditorWindowByName(windowName);
-            if (window != null)
-            {
-                window.Focus();
-                Debug.Log($"{windowName} window focused.");
-            }
-            else
-            {
-                Debug.LogWarning($"Window with name '{windowName}' not found.");
-            }
+            GetEditorWindowByName(windowName)?.Focus();
         }
 
         private static EditorWindow GetEditorWindowByName(string windowName)

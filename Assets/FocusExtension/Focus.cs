@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
 using Focus.Persistance;
 using NUnit.Framework;
 using Unity.VisualScripting;
-using UnityEditor.Search;
 using UnityEngine;
+using UnityEngine.XR;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -20,6 +17,8 @@ namespace Focus
     public class FocusEditor
     {
         public static FocusConfig config;
+        public static FocusConfig editorConfig;
+        private static FileDataHandler<FileConfig> editorFileConfig;
         private static FileDataHandler<FileConfig> fileConfig;
 
         public EditorCommands commands = new();
@@ -36,7 +35,7 @@ namespace Focus
             Load();
         }
 
-        static void Reload()
+        public static void Reload()
         {
             fileConfig = null;
             EditorApplication.update -= TrackActiveTab;
@@ -49,10 +48,33 @@ namespace Focus
 
         static void Load()
         {
-            UnityEngine.Debug.Log("Reloading config");
             EditorApplication.update += TrackActiveTab;
             EditorApplication.update += InitWindow;
             EditorApplication.hierarchyChanged += UpdateWindows;
+
+            Application.logMessageReceived += (
+                string logstring,
+                string stackstrace,
+                LogType type
+            ) =>
+            {
+                Console.WriteLine(logstring);
+            };
+
+            if (editorFileConfig is null)
+            {
+                editorFileConfig = new(Directory.GetCurrentDirectory(), "editor.json");
+                // handler = new(Application.persistentDataPath, "userData.json");
+
+                var filedata = editorFileConfig.Load()?.ToUserData();
+                editorConfig ??= filedata;
+
+                if (editorConfig is null)
+                {
+                    editorConfig = new();
+                    editorFileConfig.Save(editorConfig.ToFile());
+                }
+            }
 
             if (fileConfig is null)
             {
@@ -74,22 +96,19 @@ namespace Focus
                 "focus.action.save",
                 () =>
                 {
-                    UnityEngine.Debug.Log("Saving Configuration");
                     FileConfig data = config.ToFile();
-                    data.macros.ForEach(m =>
-                    {
-                        if (m.commands.Contains("window.display.pop"))
-                        {
-                            m.keys.ForEach(UnityEngine.Debug.Log);
-                        }
-                    });
                     fileConfig.Save(config.ToFile());
                 }
             );
 
             EditorCommands.Add("focus.action.reload", () => Reload());
 
-            //switching windows
+            foreach (var command in EditorCommands.Commands())
+            {
+                editorConfig.AddCommand(new Macro() { commands = new() { command.Key } });
+            }
+
+            editorFileConfig.Save(editorConfig.ToFile());
 
             fileConfig.Save(config.ToFile());
         }
@@ -126,13 +145,11 @@ namespace Focus
                 {
                     var w = FocusWindow.GetDockedWindows(window);
                     dockedWindows.Add(window, w);
-
-                    UnityEngine.Debug.Log($"added {w.Count} to {window.titleContent.text}");
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    UnityEngine.Debug.LogError(e);
-                    UnityEngine.Debug.LogError(window.titleContent.text);
+                    // UnityEngine.Debug.LogError(e);
+                    // UnityEngine.Debug.LogError(window.titleContent.text);
                 }
             }
 
@@ -150,7 +167,10 @@ namespace Focus
             // tab = FocusWindow.GetDockedWindows(focused);
             tab = dockedWindows.GetValueOrDefault(focused);
 
-            Assert.IsTrue(dockedWindows.ContainsKey(focused), "the window is contained");
+            Assert.IsTrue(
+                dockedWindows.ContainsKey(focused),
+                $"the window {focused.titleContent.text} does not have a dock?"
+            );
 
             Assert.IsNotNull(focused, "focused is null on setup");
         }
@@ -173,15 +193,6 @@ namespace Focus
 
             var e = Event.KeyboardEvent("down");
             EditorWindow.focusedWindow.SendEvent(e);
-
-            // Type hierarchyType = Type.GetType("UnityEditor.InspectorWindow, UnityEditor");
-
-            // var isinspector = focused is null || hierarchyType != focused.GetType() ? false : true;
-
-            // if (!isinspector)
-            //     return;
-
-            // return;
         }
 
         [MenuItem("FocusTab/ParentComponent")]
@@ -302,7 +313,7 @@ namespace Focus
             }
         }
 
-        public static void FocusRightDock()
+        public static EditorWindow GetRightDock()
         {
             Setup();
             var other = windows.Where(w =>
@@ -331,11 +342,18 @@ namespace Focus
             var docks = FocusWindow.GetDockedWindows(wind);
 
             var val = tabPos.GetValueOrDefault(wind.position);
-            if (docks.Count() > 1 && val != null)
+
+            if (val != null)
             {
-                val.Focus();
+                return val;
             }
-            else
+            return wind;
+        }
+
+        public static void FocusRightDock()
+        {
+            var wind = GetRightDock();
+            if (wind != null)
             {
                 wind.Focus();
             }

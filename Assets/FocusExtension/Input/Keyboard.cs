@@ -84,10 +84,10 @@ namespace Focus
                 var tempKey = new Key();
                 var pressingKey = (GetAsyncKeyState(key) & 0x8000) != 0;
 
-                if (pressingKey)
-                {
-                    Debug.Log($"pressing {key}");
-                }
+                // if (pressingKey)
+                // {
+                //     Debug.Log($"pressing {key}");
+                // }
                 if (pressingKey && Key.IsControl(key) && hasControlModifier == false)
                 {
                     hasControlModifier = true;
@@ -142,6 +142,11 @@ namespace Focus
                 })
                 .ToList();
 
+            if (currentKeys.Count > 0)
+            {
+                var keys = string.Join(" ", currentKeys.Select(k => k.ToString()));
+            }
+
             var macros = GetCommand(currentKeys, GlobalKeyListener.macros);
 
             if (macros is not null)
@@ -167,6 +172,8 @@ namespace Focus
                     continue;
                 }
 
+                var exact = true;
+
                 for (int i = 0; i < keys.Count; i++)
                 {
                     Key current = keys[i];
@@ -174,9 +181,12 @@ namespace Focus
 
                     if (!current.Same(macroKey))
                     {
-                        continue;
+                        exact = false;
+                        break;
                     }
-
+                }
+                if (exact == true)
+                {
                     return macro.Value;
                 }
             }
