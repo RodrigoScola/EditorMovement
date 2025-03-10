@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Focus.Persistance;
 using NUnit.Framework;
 using Unity.VisualScripting;
+using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.XR;
 #if UNITY_EDITOR
@@ -72,7 +74,6 @@ namespace Focus
                 if (editorConfig is null)
                 {
                     editorConfig = new();
-                    editorFileConfig.Save(editorConfig.ToFile());
                 }
             }
 
@@ -103,8 +104,14 @@ namespace Focus
 
             EditorCommands.Add("focus.action.reload", () => Reload());
 
-            foreach (var command in EditorCommands.Commands())
+            var commands = EditorCommands.Commands();
+
+            foreach (var command in commands)
             {
+                if (commands.Contains(command))
+                {
+                    continue;
+                }
                 editorConfig.AddCommand(new Macro() { commands = new() { command.Key } });
             }
 
@@ -122,6 +129,7 @@ namespace Focus
         }
 
         static Dictionary<EditorWindow, List<EditorWindow>> dockedWindows;
+        private static object inspectorWindowType;
 
         static void InitWindow()
         {
@@ -191,8 +199,31 @@ namespace Focus
                 return;
             }
 
-            var e = Event.KeyboardEvent("down");
-            EditorWindow.focusedWindow.SendEvent(e);
+            var evt = Event.KeyboardEvent("down");
+            focused.SendEvent(evt);
+        }
+
+        private static void FocusComponentInInspector(
+            EditorWindow inspectorWindow,
+            Component targetComponent
+        )
+        {
+            // Use reflection to invoke the method responsible for component listing in the inspector window
+            MethodInfo methodInfo = inspectorWindow
+                .GetType()
+                .GetMethod("Repaint", BindingFlags.Instance | BindingFlags.NonPublic);
+            methodInfo?.Invoke(inspectorWindow, null);
+
+            // Simulate tabbing to the component in the inspector
+            SendTabEventToInspector(inspectorWindow);
+        }
+
+        private static void SendTabEventToInspector(EditorWindow inspectorWindow)
+        {
+            // Dispatch the Tab key event to the focused inspector window
+            Event tabEvent = new Event { type = EventType.KeyDown, keyCode = KeyCode.Tab };
+
+            inspectorWindow.SendEvent(tabEvent);
         }
 
         [MenuItem("FocusTab/ParentComponent")]
@@ -274,8 +305,10 @@ namespace Focus
             var first = windows
                 .Where(w => !tab.Contains(w))
                 .Where(window =>
-                    window.position.y == focused.position.y
-                    || FocusWindow.InBounds(window.position.min, window.position.max, cursor)
+                    (
+                        window.position.y == focused.position.y
+                        && window.position.x <= focused.position.x
+                    ) || FocusWindow.InBounds(window.position.min, window.position.max, cursor)
                 )
                 .OrderBy(w => FocusWindow.Distance(focused.position.min, w.position.max))
                 .FirstOrDefault();
@@ -322,7 +355,10 @@ namespace Focus
             );
 
             var wind = windows
-                .Where(window => window.position.y == focused.position.y)
+                .Where(window =>
+                    window.position.y == focused.position.y
+                    && window.position.x >= focused.position.x
+                )
                 .OrderBy(w => FocusWindow.Distance(focused.position.max, w.position.min))
                 .Where(w => !tab.Contains(w))
                 .FirstOrDefault();

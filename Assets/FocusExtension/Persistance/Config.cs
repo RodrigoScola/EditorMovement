@@ -17,7 +17,7 @@ namespace Focus.Persistance
 
         public FileConfig ToFile()
         {
-            return new FileConfig() { macros = macros.Select(m => m.ToFile()).ToList() };
+            return new FileConfig() { macros = macros.Select(m => m.ToFile()).Distinct().ToList() };
         }
 
         public FocusConfig AddCommand(IEnumerable<Macro> macros)

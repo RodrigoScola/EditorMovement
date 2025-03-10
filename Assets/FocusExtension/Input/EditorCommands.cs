@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
-using Focus.Persistance;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Search;
 using UnityEditor.Timeline.Actions;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Focus
 {
@@ -120,6 +120,67 @@ namespace Focus
                 {
                     SearchContext context = SearchService.CreateContext("t:GameObject");
                     SearchService.ShowWindow(context).Focus();
+                }
+            );
+
+            Add(
+                "window.commands.find",
+                () =>
+                {
+                    var wind = EditorWindow.focusedWindow;
+
+                    if (wind == null)
+                    {
+                        return;
+                    }
+
+                    var evt = EditorGUIUtility.CommandEvent("Find");
+
+                    wind.SendEvent(evt);
+                }
+            );
+
+            Add(
+                "inspector.action.nextComponent",
+                () =>
+                {
+                    var wind = EditorWindow.focusedWindow;
+                    if (!wind)
+                    {
+                        return;
+                    }
+
+                    var gm = Selection.activeGameObject;
+
+                    if (gm != null)
+                    {
+                        Debug.Log("focusing other stuff");
+                    }
+
+                    var co = gm.GetComponents<Component>().ToList();
+
+                    // wind.Repaint();
+
+                    // foreach (Component component in c)
+                    // {
+                    //     // Get the type of the component
+                    //     System.Type type = component.GetType();
+                    //     UnityEngine.Debug.Log($"Component: {type.Name}");
+
+                    //     // Retrieve all fields (public and private) of the component
+                    //     FieldInfo[] fields = type.GetFields(
+                    //         BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance
+                    //     );
+
+                    //     // Iterate over each field
+                    //     foreach (FieldInfo field in fields)
+                    //     {
+                    //         // Get the field's name and value
+                    //         string fieldName = field.Name;
+                    //         object fieldValue = field.GetValue(component);
+                    //         UnityEngine.Debug.Log($"Field: {fieldName}, Value: {fieldValue}");
+                    //     }
+                    // }
                 }
             );
 

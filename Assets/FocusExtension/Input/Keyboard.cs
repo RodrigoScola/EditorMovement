@@ -71,6 +71,8 @@ namespace Focus
 
         private static void CheckKeys()
         {
+            //todo: need to change this to support keyboard commands that start with control
+            //want to use arrows when typing in search and stuff
             if (
                 !UnityEditorInternal.InternalEditorUtility.isApplicationActive
                 || CheckIfAnyInputFieldIsFocused()
